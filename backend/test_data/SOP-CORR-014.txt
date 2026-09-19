@@ -1,0 +1,33 @@
+SOP-CORR-014: Standard Operating Procedure for Piping Wall Thickness Corrosion Assessment
+
+Section 1: Purpose
+This procedure defines the minimum acceptable wall thickness and inspection
+frequency requirements for carbon steel process piping at MRPL refinery
+units, based on API 570 piping inspection code principles.
+
+Section 2: Minimum Allowable Wall Thickness
+The minimum allowable remaining wall thickness (t-min) for carbon steel
+process piping in general hydrocarbon service is 6.0 mm. Any pipe location
+whose measured current thickness falls at or below 6.0 mm shall be
+immediately flagged for replacement and removed from service pending
+engineering review.
+
+Section 3: Remaining Life and Inspection Frequency
+Remaining life shall be calculated from the corrosion rate observed between
+two thickness inspections. Locations with a calculated remaining life below
+10 years shall be flagged for increased inspection frequency and scheduled
+for follow-up ultrasonic thickness testing within 6 months. Locations with
+remaining life at or above 10 years may continue on the standard 5-year
+inspection interval.
+
+Section 4: Corrosion Rate Classification
+- Corrosion rate below 0.1 mm/year: Low corrosion, standard monitoring.
+- Corrosion rate 0.1 to 0.25 mm/year: Moderate corrosion, monitor closely.
+- Corrosion rate above 0.25 mm/year: High corrosion, prioritize for
+  re-inspection and consider engineering assessment for repair or
+  replacement.
+
+Section 5: Approval
+Any piping location classified as high corrosion or with remaining life
+below 10 years requires sign-off from the unit inspection engineer before
+the equipment can be approved to continue in service.

@@ -1,0 +1,50 @@
+# Model registry for Krypto's AI/Agent layer.
+# Every model that can be routed to must be declared here, not hardcoded in Python.
+#
+# name            - internal key used in code (router.py, agent nodes, etc.)
+# tag             - exact Ollama model tag to call (must match `ollama list`)
+# roles           - task types / keywords this model is best suited for
+# context_window  - max context length in tokens (approximate, from model card)
+# fallback        - internal key of the model to use if this one errors out or is unavailable
+
+models:
+  general:
+    tag: "qwen3:14b"
+    roles:
+      - general_reasoning
+      - summarization
+      - planning
+      - conversation
+      - default
+    context_window: 32768
+    fallback: small_router
+
+  coder:
+    tag: "qwen2.5-coder:7b"
+    roles:
+      - code_generation
+      - code_review
+      - debugging
+      - scripting
+      - technical_explanation
+    context_window: 32768
+    fallback: general
+
+  vision:
+    tag: "qwen2.5vl:7b"
+    roles:
+      - image_understanding
+      - ocr
+      - document_scan
+      - screenshot_analysis
+      - diagram_reading
+    context_window: 32768
+    fallback: general
+
+  small_router:
+    tag: "qwen3:1.7b"
+    roles:
+      - task_classification
+      - routing
+    context_window: 32768
+    fallback: general
