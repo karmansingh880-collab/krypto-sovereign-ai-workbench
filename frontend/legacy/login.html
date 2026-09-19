@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · Krypto</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b5fd1'/%3E%3Cpath d='M10 8v16M10 16l9-8M10 16l9 8' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+  <main class="auth-wrap">
+    <div class="auth-brand">
+      <span class="logo big" aria-hidden="true">K</span>
+      <h1>Krypto</h1>
+      <p class="subtitle">Sovereign AI Workbench &middot; runs on local models</p>
+    </div>
+
+    <section class="card auth-card">
+      <div class="tabs" role="tablist">
+        <button type="button" id="tab-login" class="tab active" role="tab" aria-selected="true">Sign in</button>
+        <button type="button" id="tab-signup" class="tab" role="tab" aria-selected="false">Create account</button>
+      </div>
+
+      <form id="login-form" novalidate>
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" autocomplete="username" required>
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" autocomplete="current-password" required>
+        <button type="submit" class="primary" id="login-submit">Sign in</button>
+      </form>
+
+      <form id="signup-form" novalidate hidden>
+        <label for="signup-name">Name <span class="muted">(optional)</span></label>
+        <input id="signup-name" type="text" autocomplete="name" maxlength="60">
+        <label for="signup-email">Email</label>
+        <input id="signup-email" type="email" autocomplete="username" required>
+        <label for="signup-password">Password <span class="muted">(at least 8 characters)</span></label>
+        <input id="signup-password" type="password" autocomplete="new-password" minlength="8" required>
+        <label for="signup-confirm">Confirm password</label>
+        <input id="signup-confirm" type="password" autocomplete="new-password" required>
+        <button type="submit" class="primary" id="signup-submit">Create account</button>
+      </form>
+
+      <p id="auth-error" class="error" role="alert"></p>
+
+      <div id="demo-box" class="demo" hidden>
+        <div class="or"><span>or</span></div>
+        <button type="button" id="demo-btn" class="ghost demo-btn">Continue with the demo account</button>
+        <p class="muted demo-creds">
+          Demo login: <code id="demo-email"></code> / <code id="demo-pass"></code>
+          <button type="button" id="demo-fill" class="link">fill in</button>
+        </p>
+      </div>
+    </section>
+
+    <p class="muted auth-foot">Your runs and files are private to your account.</p>
+  </main>
+
+  <script src="auth.js"></script>
+</body>
+</html>

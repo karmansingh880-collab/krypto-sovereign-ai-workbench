@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Krypto Workbench</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b5fd1'/%3E%3Cpath d='M10 8v16M10 16l9-8M10 16l9 8' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">K</span>
+      <div>
+        <h1>Krypto</h1>
+        <p class="subtitle">Sovereign AI Workbench &middot; runs on local models</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div id="services" class="pills" role="status" aria-label="Service status"></div>
+      <div class="userbox">
+        <span class="who" id="user-name"></span>
+        <button type="button" id="logout" class="ghost small">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="side">
+      <section class="card">
+        <h2>New task</h2>
+        <form id="task-form">
+          <label for="goal">What should the agent do?</label>
+          <textarea id="goal" rows="5" required></textarea>
+
+          <fieldset>
+            <legend>Input document</legend>
+            <label class="choice">
+              <input type="radio" name="source" value="sample" checked>
+              <span>Sample: Unit 4 piping inspection report</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="source" value="upload">
+              <span>Upload a report (PDF / image)</span>
+            </label>
+            <input type="file" id="file" accept=".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.webp" disabled>
+            <label class="choice">
+              <input type="radio" name="source" value="none">
+              <span>No file</span>
+            </label>
+          </fieldset>
+
+          <fieldset class="formats">
+            <legend>Also create <span class="muted">(optional)</span></legend>
+            <div class="row">
+              <label class="choice"><input type="checkbox" name="format" value="docx"><span>Word (.docx)</span></label>
+              <label class="choice"><input type="checkbox" name="format" value="pdf"><span>PDF</span></label>
+              <label class="choice"><input type="checkbox" name="format" value="image"><span>Image / chart</span></label>
+            </div>
+            <p class="form-hint">Or just ask in your instruction, e.g. “make a PDF of this summary” or
+              “give me the graph image”. Images are pulled from the PDF, or drawn as charts; no photo-realistic AI art.</p>
+          </fieldset>
+
+          <button type="submit" id="run" class="primary">Run agent</button>
+          <p id="form-error" class="error" role="alert"></p>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>History</h2>
+          <button type="button" id="clear" class="ghost small" hidden>Clear finished</button>
+        </div>
+        <ul id="history" class="history"></ul>
+      </section>
+    </aside>
+
+    <section class="content">
+      <div id="empty" class="card empty">
+        <h2>No run selected</h2>
+        <p>Start a task on the left, or pick one from the history. The agent plans,
+        reads the document, looks up the SOP, calculates corrosion and drafts the approval note.</p>
+      </div>
+
+      <div id="result-card" class="card" hidden>
+        <div class="result-head">
+          <div>
+            <h2>Result</h2>
+            <p id="meta" class="muted"></p>
+          </div>
+          <div class="result-actions">
+            <span id="status" class="badge"></span>
+            <button type="button" id="rerun" class="ghost small" hidden>Run again</button>
+            <button type="button" id="delete" class="ghost small danger">Delete</button>
+          </div>
+        </div>
+
+        <p id="result-goal" class="goal"></p>
+
+        <div id="running" class="running" hidden>
+          <div class="bar"><span></span></div>
+          <p id="running-text"></p>
+        </div>
+
+        <p id="final-message" class="notice" hidden></p>
+
+        <div id="answer" class="answer" hidden>
+          <h3>Answer</h3>
+          <div id="answer-text"></div>
+        </div>
+
+        <div id="assessment" hidden>
+          <div class="stats" id="stats"></div>
+          <div class="table-wrap">
+            <table id="table">
+              <thead>
+                <tr>
+                  <th>Location</th><th class="num">Previous (mm)</th><th class="num">Current (mm)</th>
+                  <th class="num">Rate (mm/yr)</th><th class="num">Life left (yr)</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="downloads" class="downloads"></div>
+        <div id="gallery" class="gallery" hidden></div>
+
+        <div class="trace-head">
+          <h3>Agent trace <span id="trace-count" class="muted"></span></h3>
+          <button type="button" id="toggle-trace" class="ghost small" hidden>Expand all</button>
+        </div>
+        <p id="trace-hint" class="muted"></p>
+        <ol id="steps" class="steps"></ol>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -88,6 +88,8 @@ async def run_agent_task(goal: str, file_paths: Optional[List[str]] = None) -> D
                 "tool_args": obs.get("tool_args"),
                 "response": obs.get("response"),
                 "error": obs.get("error"),
+                # Which model the router picked for this step (present for routed steps only).
+                **({"route": obs["route"]} if obs.get("route") else {}),
             }
         )
 

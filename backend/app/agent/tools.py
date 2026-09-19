@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, Type
 
 from backend.app.rag.search import search_knowledge
+from backend.app.router.router import demo_model
 from backend.app.tools.calc import calculate_corrosion
 from backend.app.tools.docgen import generate_approval_note
 from backend.app.tools.ocr import extract_text
@@ -236,6 +237,30 @@ def try_parse_tool_calls(raw_text: str) -> Optional[list]:
     return calls or None
 
 
+_TOOL_CALL_START_RE = re.compile(r'^\s*(?:```(?:json)?\s*)?\{\s*"tool"\s*:')
+
+
+def looks_like_tool_call(raw_text: str) -> bool:
+    """True if the reply starts like a tool-call JSON object (whether or not it parses)."""
+    return bool(_TOOL_CALL_START_RE.match(raw_text))
+
+
+def _coerce_numeric_args(allowed: Dict[str, Any], args: dict) -> None:
+    """Small models often emit numbers as strings ("3"). Fix those in place."""
+    for name, value in args.items():
+        expected = allowed.get(name)
+        if not isinstance(value, str) or expected is None:
+            continue
+        types = expected if isinstance(expected, tuple) else (expected,)
+        try:
+            if int in types:
+                args[name] = int(value)
+            elif float in types:
+                args[name] = float(value)
+        except ValueError:
+            pass
+
+
 def validate_tool_call(tool_call: dict) -> None:
     """Raise ValueError with a model-readable message if the call is invalid."""
     tool_name = tool_call.get("tool")
@@ -249,6 +274,9 @@ def validate_tool_call(tool_call: dict) -> None:
 
     spec = TOOL_REGISTRY[tool_name]
     allowed = {**spec.required, **spec.optional}
+
+    if demo_model():
+        _coerce_numeric_args(allowed, args)
 
     for arg_name in args:
         if arg_name not in allowed:

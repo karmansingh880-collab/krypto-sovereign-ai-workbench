@@ -8,6 +8,8 @@ decide do we ask the small qwen3:1.7b model to classify the task.
 
 from __future__ import annotations
 
+import os
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -47,6 +49,75 @@ class RoutingDecision:
     model_tag: str       # ollama tag to call, e.g. "qwen2.5-coder:7b"
     reason: str          # human-readable explanation for the UI
     context_window: int  # from models.yaml, so callers can size prompts
+    designed_tag: str = ""  # the model models.yaml names for this task type (differs from model_tag in demo mode)
+
+
+def demo_model() -> Optional[str]:
+    """Single small model to use for every LLM call, or None for the locked models.
+
+    Set KRYPTO_DEMO_MODEL (e.g. "llama3.2:3b") to run the whole agent on
+    hardware that can't host the 14B/7B models in models.yaml. models.yaml is
+    never modified; unsetting the variable restores the normal routing.
+    """
+    return os.environ.get("KRYPTO_DEMO_MODEL") or None
+
+
+def resolve_model_tag(tag: str) -> str:
+    return demo_model() or tag
+
+
+# Demo mode runs everything on one small model. Where a small SPECIALIST for a task type is installed
+# it is used for that type instead (a real coder model for code, a real vision model for images).
+# Override with KRYPTO_DEMO_CODER_MODEL / KRYPTO_DEMO_VISION_MODEL ("none" turns the specialist off).
+_SPECIALISTS = {"coder": ("KRYPTO_DEMO_CODER_MODEL", "qwen2.5-coder:1.5b"),
+                "vision": ("KRYPTO_DEMO_VISION_MODEL", "moondream")}
+_installed_cache: tuple[float, set[str]] = (0.0, set())
+
+
+def installed_models() -> set[str]:
+    """Tags Ollama has downloaded (cached for a minute). Empty if Ollama is unreachable."""
+    global _installed_cache
+    stamp, names = _installed_cache
+    if time.time() - stamp < 60:
+        return names
+    found: set[str] = set()
+    if ollama is not None:
+        try:
+            listing = ollama.list()
+            models = listing["models"] if isinstance(listing, dict) else getattr(listing, "models", [])
+            for model in models:
+                name = model.get("model") or model.get("name") if isinstance(model, dict) else getattr(model, "model", "")
+                if name:
+                    found.add(name)
+                    if name.endswith(":latest"):
+                        found.add(name[: -len(":latest")])
+        except Exception:
+            found = set()
+    _installed_cache = (time.time(), found)
+    return found
+
+
+def specialist_model(model_key: str) -> Optional[str]:
+    """In demo mode: the small specialist model for this task type, if it is installed; otherwise None."""
+    if not demo_model() or model_key not in _SPECIALISTS:
+        return None
+    env_name, default = _SPECIALISTS[model_key]
+    tag = os.environ.get(env_name, default)
+    if not tag or tag.lower() == "none":
+        return None
+    return tag if tag in installed_models() else None
+
+
+def describe_route(decision: "RoutingDecision", chosen_tag: Optional[str] = None) -> dict:
+    """What the UI shows for one routed step: task type, the model the design calls for, the model that ran."""
+    actual = chosen_tag or decision.model_tag
+    return {
+        "task_type": decision.model_key,
+        "designed_model": decision.designed_tag or decision.model_tag,
+        "model": actual,
+        "reason": decision.reason,
+        "substituted": actual != (decision.designed_tag or decision.model_tag),
+    }
 
 
 def _load_config() -> dict:
@@ -58,15 +129,18 @@ def _decision_for(model_key: str, config: dict, reason: str) -> RoutingDecision:
     entry = config[model_key]
     return RoutingDecision(
         model_key=model_key,
-        model_tag=entry["tag"],
+        model_tag=resolve_model_tag(entry["tag"]),
         reason=reason,
         context_window=entry["context_window"],
+        designed_tag=entry["tag"],
     )
 
 
 def _classify_with_small_model(task_description: str, config: dict) -> Optional[str]:
     """Ask qwen3:1.7b to pick one of general/coder/vision. Returns None on failure."""
-    if ollama is None:
+    # In demo mode there is no separate small model, and an extra full-size
+    # LLM call per step just to classify is too slow on CPU -- use rules only.
+    if ollama is None or demo_model():
         return None
 
     small_tag = config["small_router"]["tag"]
@@ -92,6 +166,11 @@ def _classify_with_small_model(task_description: str, config: dict) -> Optional[
         if candidate in answer:
             return candidate
     return None
+
+
+def route_to(model_key: str, reason: str) -> RoutingDecision:
+    """A decision for a task type the caller has already identified (e.g. by its own rules)."""
+    return _decision_for(model_key, _load_config(), reason)
 
 
 def route_task(task_description: str, file_type: Optional[str] = None) -> RoutingDecision:
